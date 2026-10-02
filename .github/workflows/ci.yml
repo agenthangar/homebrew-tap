@@ -23,7 +23,6 @@ jobs:
         run: python3 -m unittest discover -s tests
       - name: Install and test the local tap
         run: |
-          brew tap agenthangar/tap "$GITHUB_WORKSPACE"
           brew audit --strict --online agenthangar/tap/t
           brew install --build-from-source agenthangar/tap/t
           brew test agenthangar/tap/t
