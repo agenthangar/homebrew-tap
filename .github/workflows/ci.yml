@@ -1,0 +1,28 @@
+name: Formula CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  formula:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Homebrew/actions/setup-homebrew@fd832223f9f99ebf0244dd20658680e5d4aca049 # 2026.08.03.2
+        with:
+          core: true
+          cask: false
+      - name: Check maintainer bump logic
+        run: python3 -m unittest discover -s tests
+      - name: Install and test the local tap
+        run: |
+          brew audit --strict --online agenthangar/tap/t
+          brew install --build-from-source agenthangar/tap/t
+          brew test agenthangar/tap/t
