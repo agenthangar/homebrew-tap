@@ -1,0 +1,53 @@
+name: Update t formula
+on:
+  schedule:
+    - cron: '2,17,32,47 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: update-t-formula
+  cancel-in-progress: false
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get tap-scoped GitHub App token
+        id: app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.T_FORMULA_APP_CLIENT_ID }}
+          private-key: ${{ secrets.T_FORMULA_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app.outputs.token }}
+      - name: Verify published release and update formula
+        run: python3 scripts/bump.py
+      - name: Test bump logic
+        run: python3 -m unittest discover -s tests
+      - name: Open and auto-merge formula PR
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          if git diff --quiet -- Formula/t.rb; then
+            echo 'Formula is already current.'
+            exit 0
+          fi
+          version=$(sed -nE 's@^  url ".*/download/(v[0-9]+\.[0-9]+\.[0-9]+)/t\.tar\.gz"$@\1@p' Formula/t.rb)
+          test -n "$version"
+          existing=$(gh pr list --state open --search "Bump t formula to $version in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "Formula update already pending in PR #$existing"
+            exit 0
+          fi
+          branch="automation/t-${version}-${GITHUB_RUN_ID}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add Formula/t.rb
+          git commit -m "Bump t formula to $version"
+          git push --set-upstream origin "$branch"
+          pr=$(gh pr create --base main --head "$branch" --title "Bump t formula to $version" --body 'Verified the published t archive and SHA-256 with scripts/bump.py. Formula CI must pass before merge.')
+          gh pr merge "$pr" --auto --squash
