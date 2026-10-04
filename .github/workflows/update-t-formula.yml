@@ -1,7 +1,7 @@
 name: Update t formula
 on:
-  schedule:
-    - cron: '2,17,32,47 * * * *'
+  repository_dispatch:
+    types: [t-release]
   workflow_dispatch:
 permissions:
   contents: read

@@ -13,7 +13,7 @@ To update, run `t update` or `brew upgrade agenthangar/tap/t`. The formula is so
 
 ## Updating the formula
 
-After a new `agenthangar/t` release has both `t.tar.gz` and `SHA256SUMS`, [Update t formula](.github/workflows/update-t-formula.yml) checks the latest published release every 15 minutes. It runs `scripts/bump.py` to verify the archive and digest, then opens a PR for a changed formula and enables squash auto-merge after formula CI passes. The workflow can also be run on demand from the Actions tab. It makes no change when the formula is current.
+After a new `agenthangar/t` release has both `t.tar.gz` and `SHA256SUMS`, [Update t formula](.github/workflows/update-t-formula.yml) runs when the `agenthangar/t` release workflow dispatches an event after verifying or uploading both assets. It runs `scripts/bump.py` to verify the archive and digest, then opens a PR for a changed formula and enables squash auto-merge after formula CI passes. The workflow can also be run on demand from the Actions tab. It makes no change when the formula is current.
 
 The workflow authenticates as a GitHub App installed only on this tap, with Contents and Pull requests write permissions. Its client ID is stored in the `T_FORMULA_APP_CLIENT_ID` repository variable; its private key is stored in the `T_FORMULA_APP_PRIVATE_KEY` repository secret. The workflow's own `GITHUB_TOKEN` has read-only access.
 
