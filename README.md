@@ -13,19 +13,17 @@ To update, run `t update` or `brew upgrade agenthangar/tap/t`. The formula is so
 
 ## Updating the formula
 
-After a new `agenthangar/t` release has been published with both `t.tar.gz` and
-`SHA256SUMS`, a maintainer updates the tap with:
+After a new `agenthangar/t` release has both `t.tar.gz` and `SHA256SUMS`, [Update t formula](.github/workflows/update-t-formula.yml) checks the latest published release every 15 minutes. It runs `scripts/bump.py` to verify the archive and digest, then opens a PR for a changed formula and enables squash auto-merge after formula CI passes. The workflow can also be run on demand from the Actions tab. It makes no change when the formula is current.
+
+The workflow authenticates as a GitHub App installed only on this tap, with Contents and Pull requests write permissions. Its client ID is stored in the `T_FORMULA_APP_CLIENT_ID` repository variable; its private key is stored in the `T_FORMULA_APP_PRIVATE_KEY` repository secret. The workflow's own `GITHUB_TOKEN` has read-only access.
+
+For a failed run or manual recovery, verify a specific release before opening a PR:
 
 ```sh
-python3 scripts/bump.py --version v0.3.0 --dry-run
-python3 scripts/bump.py --version v0.3.0
+python3 scripts/bump.py --version v0.3.1 --dry-run
+python3 scripts/bump.py --version v0.3.1
 python3 -m unittest discover -s tests
 git diff -- Formula/t.rb
 ```
 
-Omit `--version` to use the latest published release. The bump command downloads
-both assets, verifies the archive against its SHA-256 digest, checks the release
-and installer markers inside it, and changes only the formula's release URL and
-digest. Review the diff, run the formula CI, then open a normal PR to `main` and
-enable squash auto-merge. Publish the `t` release before merging the tap PR so
-Homebrew never points to missing assets.
+The bump script checks the release and installer markers and changes only the formula URL and digest. Publish the release assets before updating the formula so Homebrew never points to missing files.
