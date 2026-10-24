@@ -6,12 +6,14 @@ This tap distributes [t](https://github.com/agenthangar/t), a toolkit for coding
 
 ```sh
 brew install agenthangar/tap/t
-$(brew --prefix agenthangar/tap/t)/bin/t integrate
+t
 ```
 
-The formula installs t's files under Homebrew without changing your shell or agent settings. `t integrate` explicitly links the command and prompt helpers into your home directory; its links use Homebrew's stable `opt` path so a routine `brew upgrade` does not leave them pointing at an old Cellar version. Follow the shell snippet printed by `t integrate` to load the zsh plugin.
+The formula installs t's files under Homebrew without changing your shell or agent settings. Run `t` in a terminal for guided first-run setup: choose agents, review shell and agent integrations, discover existing repositories, and optionally clone selected GitHub organization repositories or add Tailscale hosts. Setup reviews changes before applying them. Open a new terminal afterward to load the shell integration.
 
-To update, run `t update` or `brew upgrade agenthangar/tap/t`. The formula is sourced from t's versioned GitHub release archive and its published SHA-256 digest.
+You can also add this tap once with `brew tap agenthangar/tap`, then use `brew install t`. Rerun discovery with `t config onboard` when you add repositories or hosts. Noninteractive `t` prints help without changing settings.
+
+To update, run `t system update` or `brew upgrade agenthangar/tap/t`. The formula is sourced from t's versioned GitHub release archive and its published SHA-256 digest.
 
 ## dotfiles
 
