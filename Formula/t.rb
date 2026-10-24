@@ -31,12 +31,10 @@ class T < Formula
   def caveats
     <<~EOS
       Homebrew installed t without changing your shell or agent settings.
-      Run the Homebrew command explicitly to link its prompts and helpers:
-        #{opt_bin}/t integrate
+      Start t to review and complete setup:
+        t
 
-      Then add to your ~/.zshrc:
-        export PATH="$HOME/bin:$PATH"
-        source "${${:-$HOME/bin/t}:A:h:h}/t.plugin.zsh"
+      Setup helps you choose agents, connect your shell, and find repositories.
     EOS
   end
 
@@ -51,6 +49,9 @@ class T < Formula
     ENV["T_NO_PERMISSIONS"] = "1"
     ENV["T_NO_TRUST"] = "1"
     ENV["TMUX"] = ""
+    before = Dir.glob("#{testpath}/**/*", File::FNM_DOTMATCH).sort
+    assert_match "USAGE", shell_output("#{bin}/t")
+    assert_equal before, Dir.glob("#{testpath}/**/*", File::FNM_DOTMATCH).sort
     assert_match "t v#{version}", shell_output("#{bin}/t --version")
     system bin/"t", "ls"
     system bin/"t", "integrate"
