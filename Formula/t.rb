@@ -30,11 +30,8 @@ class T < Formula
 
   def caveats
     <<~EOS
-      Homebrew installed t without changing your shell or agent settings.
-      Start t to review and complete setup:
+      Get started:
         t
-
-      Setup helps you choose agents, connect your shell, and find repositories.
     EOS
   end
 
