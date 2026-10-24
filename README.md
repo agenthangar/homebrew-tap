@@ -17,18 +17,23 @@ To update, run `t update` or `brew upgrade agenthangar/tap/t`. The formula is so
 
 ```sh
 brew install agenthangar/tap/dotfiles
-dotfiles-setup
+"$(brew --prefix agenthangar/tap/dotfiles)/bin/dots" install
 ```
 
-Homebrew installs the setup command without changing your shell. Run `dotfiles-setup`
+Homebrew installs the `dots` command without changing your shell. Run `dots install`
 to clone into `~/code/dotfiles` and run the existing installer, or pass a custom
-directory: `dotfiles-setup /path/to/dotfiles`. Setup reuses clean canonical dotfiles
+directory: `dots install /path/to/dotfiles`. The explicit path above selects the
+Homebrew command even if an older `dots` function or executable is already on PATH.
+Setup reuses clean canonical dotfiles
 clones on `main`; it rejects worktrees, unrelated repositories, and local changes.
 The installer backs up existing shell files, links configuration into your home
 directory, and installs its Brewfile dependencies and standalone t when needed.
 
-Use `dots` to update the configuration. `brew upgrade agenthangar/tap/dotfiles`
-updates only the setup command. `brew uninstall dotfiles` leaves the checkout and
+Open a new shell or run `source ~/.zshrc`, then use `dots update` to update the
+configuration. Bare `dots` and its existing flags still work. The old
+`dotfiles-setup` command remains an alias for `dots install`.
+`brew upgrade agenthangar/tap/dotfiles` updates the packaged CLI.
+`brew uninstall dotfiles` leaves the checkout, its `~/bin/dots` command, and
 your configured shell in place. The writable checkout keeps `dots`, development
 worktrees, and existing symlinks independent of Homebrew's Cellar cleanup.
 
