@@ -1,6 +1,8 @@
 # AgentHangar Homebrew tap
 
-This tap distributes [t](https://github.com/agenthangar/t), a toolkit for coding-agent sessions in isolated Git worktrees and tmux.
+This tap distributes [t](https://github.com/agenthangar/t), a toolkit for coding-agent sessions in isolated Git worktrees and tmux, and [dotfiles](https://github.com/agenthangar/dotfiles), shell configuration and utilities.
+
+## t
 
 ```sh
 brew install agenthangar/tap/t
@@ -11,7 +13,31 @@ The formula installs t's files under Homebrew without changing your shell or age
 
 To update, run `t update` or `brew upgrade agenthangar/tap/t`. The formula is sourced from t's versioned GitHub release archive and its published SHA-256 digest.
 
-## Updating the formula
+## dotfiles
+
+```sh
+brew install agenthangar/tap/dotfiles
+dotfiles-setup
+```
+
+Homebrew installs the setup command without changing your shell. Run `dotfiles-setup`
+to clone into `~/code/dotfiles` and run the existing installer, or pass a custom
+directory: `dotfiles-setup /path/to/dotfiles`. Setup reuses clean canonical dotfiles
+clones on `main`; it rejects worktrees, unrelated repositories, and local changes.
+The installer backs up existing shell files, links configuration into your home
+directory, and installs its Brewfile dependencies and standalone t when needed.
+
+Use `dots` to update the configuration. `brew upgrade agenthangar/tap/dotfiles`
+updates only the setup command. `brew uninstall dotfiles` leaves the checkout and
+your configured shell in place. The writable checkout keeps `dots`, development
+worktrees, and existing symlinks independent of Homebrew's Cellar cleanup.
+
+The formula pins the setup command to a dotfiles source commit with a SHA-256
+digest. When that command changes, update its commit URL and digest and increment
+the formula version in a PR. Ordinary dotfiles changes do not need a formula bump:
+setup clones the current `main`, and `dots` handles subsequent updates.
+
+## Updating the t formula
 
 After a new `agenthangar/t` release has both `t.tar.gz` and `SHA256SUMS`, [Update t formula](.github/workflows/update-t-formula.yml) runs when the `agenthangar/t` release workflow dispatches an event after verifying or uploading both assets. It runs `scripts/bump.py` to verify the archive and digest, then opens a PR for a changed formula and enables squash auto-merge after formula CI passes. The workflow can also be run on demand from the Actions tab. It makes no change when the formula is current.
 

@@ -26,3 +26,6 @@ jobs:
           brew audit --strict --online agenthangar/tap/t
           brew install --build-from-source agenthangar/tap/t
           brew test agenthangar/tap/t
+          brew audit --strict --online agenthangar/tap/dotfiles
+          brew install --build-from-source agenthangar/tap/dotfiles
+          brew test agenthangar/tap/dotfiles
