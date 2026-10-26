@@ -1,79 +1,67 @@
 # frozen_string_literal: true
 
-# Install the explicit bootstrap command, leaving configuration in a Git clone.
+# Complete runtime distribution; no user-side Git checkout is needed.
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/ae8499139def9b231f1e28b51e5fd09c0b815098.tar.gz"
-  version "0.3.0"
-  sha256 "d01b9489389f37f7edf6498dc2785e107d6f0294d243c07ee6bbd4d80d0634d8"
+  url "https://github.com/agenthangar/dotfiles/archive/40974b821bd9ceb938e93a602a1f3bccd93ab8f6.tar.gz"
+  version "0.4.0"
+  sha256 "7d1d2a1fa623a30eb293e3b3f76e293d28fb75beb1d31a658749e2841865112a"
   license "MIT"
 
+  depends_on "fzf"
+  depends_on "gh"
   depends_on "git"
+  depends_on "glow"
+  depends_on "jq"
   depends_on "python@3.14"
+  depends_on "tmux"
   depends_on "zsh"
 
   def install
-    (libexec/"bin").install "bin/dots"
-    (libexec/"scripts").install "scripts/dotfiles-setup"
+    libexec.install "bin", "lib", "agents", "ssh", "launchd", "scripts",
+                    "install.sh", "Brewfile", ".zshrc", ".tmux.conf", ".zshrc.local.example",
+                    "pii-allowlist.txt", "pii-ignore-patterns.txt"
+    (libexec/".dotfiles-package").write("#{opt_libexec}\n")
+    (libexec/".dotfiles-version").write("#{version}\n")
     bin.install_symlink libexec/"bin/dots", libexec/"scripts/dotfiles-setup"
   end
 
   def caveats
     <<~EOS
-      Run the Homebrew command explicitly to set up or update this account:
+      Apply the installed package to this account:
         #{opt_bin}/dots
 
-      On a new account this clones into ~/code/dotfiles by default. To choose another location:
-        #{opt_bin}/dots install /path/to/dotfiles
+      No Git checkout is required. Configuration and utilities come from
+      Homebrew; your settings remain in ~/.zshrc.local.
+      Existing checkout-based installs are migrated without deleting the checkout.
 
-      Setup runs the dotfiles installer, which backs up existing shell files,
-      links configuration into your home directory, and installs dependencies.
-      Existing destinations must be clean canonical dotfiles clones on main.
-
-      Then open a new shell or run: source ~/.zshrc
-      Run dots again to update your configuration. Homebrew upgrades the
-      packaged CLI; your writable checkout and its command update with dots.
-      Uninstalling this formula leaves your checkout and shell intact.
-      The old dotfiles-setup command remains an alias for dots install.
+      Open a new shell or run: source ~/.zshrc
+      Run dots to upgrade through Homebrew and apply the installed configuration.
+      dots --relink reapplies it offline. dots install reruns full account setup.
+      Uninstalling the package leaves your settings but removes its runtime.
     EOS
   end
 
   test do
     ENV["HOME"] = testpath.to_s
+    ENV["XDG_CONFIG_HOME"] = (testpath/".config").to_s
+    ENV["DOTFILES_NO_T"] = "1"
+    ENV["DOTFILES_NO_TMUX"] = "1"
+    ENV["DOTFILES_NO_CLIP_BRIDGE"] = "1"
+    ENV["DOTFILES_NO_SUDO"] = "1"
     ENV["GIT_CONFIG_GLOBAL"] = File::NULL
     ENV["GIT_CONFIG_NOSYSTEM"] = "1"
     assert_match "Usage: dots", shell_output("#{bin}/dots --help")
-    assert_match "Usage: dots install", shell_output("#{bin}/dots install --help")
     assert_match "Usage: dots install", shell_output("#{bin}/dotfiles-setup --help")
-    assert_match "run dots install first", shell_output("#{bin}/dots update 2>&1", 1)
-    refute_path_exists testpath/"code"
-
-    # Reuse a local fixture; no network or real shell configuration is needed.
-    checkout = testpath/"checkout with spaces"
-    checkout.mkpath
-    (checkout/".zshrc").write "# test shell\n"
-    (checkout/"install.sh").write <<~SH
-      #!/bin/sh
-      touch "$HOME/setup-ran"
-    SH
-    system "git", "init", "-b", "main", checkout
-    system "git", "-C", checkout, "add", "."
-    system "git", "-C", checkout, "-c", "user.name=Test", "-c", "user.email=test@example.com",
-           "-c", "core.hooksPath=/dev/null", "commit", "-m", "fixture"
-    system "git", "-C", checkout, "remote", "add", "origin", "https://github.com/agenthangar/dotfiles.git"
-    system bin/"dots", "install", checkout
-    assert_path_exists testpath/"setup-ran"
-
-    # Plain dots uses that same installer for a new account.
-    (testpath/"setup-ran").delete
-    (testpath/"code").mkpath
-    mv checkout, testpath/"code/dotfiles"
+    (testpath/".zshrc.local").write "# keep local settings\n"
     system bin/"dots"
-    assert_path_exists testpath/"setup-ran"
-
-    # Once shell integration exists, plain dots delegates to its update path.
-    (testpath/".zshrc").write "dots() { print -r -- updated-existing-account; }\n"
-    assert_match "updated-existing-account", shell_output("#{bin}/dots")
+    refute_path_exists testpath/"code"
+    refute_predicate testpath/".zshrc", :symlink?
+    assert_path_exists testpath/".config/dotfiles/installed"
+    assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
+    assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
+    system bin/"dots", "--relink"
+    assert_match "nosleep", shell_output("zsh -f -c 'source ~/.zshrc; nosleep --help'")
   end
 end
