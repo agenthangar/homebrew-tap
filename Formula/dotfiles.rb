@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/cb7f068d1cfe37ab57b7dc6ebbd873b58bee7522.tar.gz"
-  version "0.2.0"
-  sha256 "0a747ad36e45f149e18a7bb87911ffa8f0adc166653f5e25e7490deea9923940"
+  url "https://github.com/agenthangar/dotfiles/archive/ae8499139def9b231f1e28b51e5fd09c0b815098.tar.gz"
+  version "0.3.0"
+  sha256 "d01b9489389f37f7edf6498dc2785e107d6f0294d243c07ee6bbd4d80d0634d8"
   license "MIT"
 
   depends_on "git"
@@ -21,10 +21,10 @@ class Dotfiles < Formula
 
   def caveats
     <<~EOS
-      Run the Homebrew command explicitly to configure this account:
-        #{opt_bin}/dots install
+      Run the Homebrew command explicitly to set up or update this account:
+        #{opt_bin}/dots
 
-      This clones into ~/code/dotfiles by default. To choose another location:
+      On a new account this clones into ~/code/dotfiles by default. To choose another location:
         #{opt_bin}/dots install /path/to/dotfiles
 
       Setup runs the dotfiles installer, which backs up existing shell files,
@@ -32,7 +32,7 @@ class Dotfiles < Formula
       Existing destinations must be clean canonical dotfiles clones on main.
 
       Then open a new shell or run: source ~/.zshrc
-      Use dots update to update your configuration. Homebrew upgrades the
+      Run dots again to update your configuration. Homebrew upgrades the
       packaged CLI; your writable checkout and its command update with dots.
       Uninstalling this formula leaves your checkout and shell intact.
       The old dotfiles-setup command remains an alias for dots install.
@@ -64,5 +64,16 @@ class Dotfiles < Formula
     system "git", "-C", checkout, "remote", "add", "origin", "https://github.com/agenthangar/dotfiles.git"
     system bin/"dots", "install", checkout
     assert_path_exists testpath/"setup-ran"
+
+    # Plain dots uses that same installer for a new account.
+    (testpath/"setup-ran").delete
+    (testpath/"code").mkpath
+    mv checkout, testpath/"code/dotfiles"
+    system bin/"dots"
+    assert_path_exists testpath/"setup-ran"
+
+    # Once shell integration exists, plain dots delegates to its update path.
+    (testpath/".zshrc").write "dots() { print -r -- updated-existing-account; }\n"
+    assert_match "updated-existing-account", shell_output("#{bin}/dots")
   end
 end
