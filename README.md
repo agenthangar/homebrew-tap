@@ -18,33 +18,32 @@ To update, run `t system update` or `brew upgrade agenthangar/tap/t`. The formul
 ## dotfiles
 
 ```sh
-brew install agenthangar/tap/dotfiles
-"$(brew --prefix agenthangar/tap/dotfiles)/bin/dots"
+brew tap agenthangar/tap
+brew install dots
+dots
 ```
 
-After `brew tap agenthangar/tap`, `brew install dots` also works as an alias.
-Homebrew installs the `dots` command without changing your shell. Run `dots` on a new account
-to clone into `~/code/dotfiles` and run the existing installer, or pass a custom
-directory: `dots install /path/to/dotfiles`. The explicit path above selects the
-Homebrew command even if an older `dots` function or executable is already on PATH.
-Setup reuses clean canonical dotfiles
-clones on `main`; it rejects worktrees, unrelated repositories, and local changes.
-The installer backs up existing shell files, links configuration into your home
-directory, and installs its Brewfile dependencies and standalone t when needed.
+`dots` is an alias for the `dotfiles` formula. The package contains the complete
+configuration, utilities, and templates; no Git checkout is required. The first
+`dots` applies that package to your account. Later runs upgrade through Homebrew
+and reapply the installed configuration. `dots --relink` reconciles it offline.
+`dots install` reruns full account setup, including optional sudo trust.
 
-Open a new shell or run `source ~/.zshrc`, then run `dots` again to update the
-configuration. Explicit `dots update` and the existing flags still work. The old
-`dotfiles-setup` command remains an alias for `dots install`.
-`brew upgrade agenthangar/tap/dotfiles` updates the packaged CLI; run `dots`
-afterward to update the active configuration.
-`brew uninstall dotfiles` leaves the checkout, its `~/bin/dots` command, and
-your configured shell in place. The writable checkout keeps `dots`, development
-worktrees, and existing symlinks independent of Homebrew's Cellar cleanup.
+Existing checkout users should run the Homebrew command explicitly once:
 
-The formula pins the setup command to a dotfiles source commit with a SHA-256
-digest. When that command changes, update its commit URL and digest and increment
-the formula version in a PR. Ordinary dotfiles changes do not need a formula bump:
-setup clones the current `main`, and `dots` handles subsequent updates.
+```sh
+"$(brew --prefix agenthangar/tap/dotfiles)/bin/dots" install
+source ~/.zshrc
+```
+
+Setup preserves private settings and existing repositories. It replaces the old
+shell symlink with a real loader and uses Homebrew's stable opt path for runtime
+files. `brew upgrade dots` updates the same runtime; `brew uninstall dots` removes
+it while leaving private settings intact. `dotfiles-setup` aliases `dots install`.
+
+Every runtime release needs a formula version/commit URL/SHA-256 update. The
+formula must ship all runtime assets and dependencies. Tests install the real
+payload in a sandbox account without cloning or fetching any repository.
 
 ## Updating the t formula
 
