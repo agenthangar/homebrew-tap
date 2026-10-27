@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/217cb24e8ace5585609bf5910e63e96ad26525ce.tar.gz"
-  version "0.7.0"
-  sha256 "b0ff187c5b01913b41dc0bc27ad7757f6e9726788ce2dbe75e27950be95f3cae"
+  url "https://github.com/agenthangar/dotfiles/archive/43a29dd568dc96d5b7bceb623903e2ea779cc6b1.tar.gz"
+  version "0.8.0"
+  sha256 "af0a948176a39c6a711c72594166622d984f64517d7eac9ba2fc2d74c948d108"
   license "MIT"
 
   depends_on "fzf"
@@ -66,8 +66,13 @@ class Dotfiles < Formula
     assert_match "-d, --display MODE", help
     assert_match "-l, --lock MODE", help
     assert_match "-c, --checks MODE", help
+    assert_match "--require VALUE", help
     assert_match "CHECK SETTINGS", help
     assert_match "SHORTCUTS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=agent -dMLh'")
+    invalid = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
+                           "nosleep --checks agent --require=2' 2>&1", 2)
+    assert_match "--require exceeds the number of enabled checks", invalid
+    refute_match "unexpected-power", invalid
     (testpath/".config/nosleep").mkpath
     (testpath/".config/nosleep/config.json").write('{"agent":false,"internet":true}')
     settings = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show'")
