@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/ce5c143762d6c44632188a798b125d8f0ae53f71.tar.gz"
-  version "0.6.0"
-  sha256 "fede38af6e1ed098d11c9ba3b5c732e84ce51b9aa69f9ead729ac69ff374e0a8"
+  url "https://github.com/agenthangar/dotfiles/archive/217cb24e8ace5585609bf5910e63e96ad26525ce.tar.gz"
+  version "0.7.0"
+  sha256 "b0ff187c5b01913b41dc0bc27ad7757f6e9726788ce2dbe75e27950be95f3cae"
   license "MIT"
 
   depends_on "fzf"
@@ -62,12 +62,12 @@ class Dotfiles < Formula
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
     system bin/"dots", "--relink"
-    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -dMLh'")
-    assert_match "-m, --dim", help
-    assert_match "-A, --no-agent", help
-    assert_match "-I, --no-internet", help
-    assert_match "-M, --undim", help
+    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c agent -h'")
+    assert_match "-d, --display MODE", help
+    assert_match "-l, --lock MODE", help
+    assert_match "-c, --checks MODE", help
     assert_match "CHECK SETTINGS", help
+    assert_match "SHORTCUTS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=agent -dMLh'")
     (testpath/".config/nosleep").mkpath
     (testpath/".config/nosleep/config.json").write('{"agent":false,"internet":true}')
     settings = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show'")
