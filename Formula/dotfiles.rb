@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/43a29dd568dc96d5b7bceb623903e2ea779cc6b1.tar.gz"
-  version "0.8.0"
-  sha256 "af0a948176a39c6a711c72594166622d984f64517d7eac9ba2fc2d74c948d108"
+  url "https://github.com/agenthangar/dotfiles/archive/59af08b997491557358038a497c72ebffd8b0089.tar.gz"
+  version "0.9.0"
+  sha256 "4ca6b307ed7cf21537654a4b5b2699c9dd62cd24486c014e38055902abcc6b2c"
   license "MIT"
 
   depends_on "fzf"
@@ -67,6 +67,11 @@ class Dotfiles < Formula
     assert_match "-l, --lock MODE", help
     assert_match "-c, --checks MODE", help
     assert_match "--require VALUE", help
+    assert_match "--hotspot-after", help
+    assert_path_exists libexec/"lib/nosleep-fallback.zsh"
+    assert_path_exists libexec/"lib/nosleep_hotspot.py"
+    system Formula["python@3.14"].opt_bin/"python3.14", libexec/"lib/nosleep_hotspot.py",
+           "validate", "--ssid=Example Hotspot"
     assert_match "CHECK SETTINGS", help
     assert_match "SHORTCUTS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=agent -dMLh'")
     invalid = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
@@ -81,5 +86,7 @@ class Dotfiles < Formula
     assert_match "Internet  On", settings
     assert_match "\nChecks\n", settings
     assert_match "\nCheck settings\n", settings
+    assert_match "\nHotspot fallback\n", settings
+    assert_match "Hotspot   off", settings
   end
 end
