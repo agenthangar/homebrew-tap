@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/39eaac59688f2a48c634af8e6b5e344fd28b2435.tar.gz"
-  version "0.5.0"
-  sha256 "23c7def5d2e1bd4560a01df8eb987346e4338c7cee62cb70aff9b94aa3084e37"
+  url "https://github.com/agenthangar/dotfiles/archive/ce5c143762d6c44632188a798b125d8f0ae53f71.tar.gz"
+  version "0.6.0"
+  sha256 "fede38af6e1ed098d11c9ba3b5c732e84ce51b9aa69f9ead729ac69ff374e0a8"
   license "MIT"
 
   depends_on "fzf"
@@ -62,15 +62,19 @@ class Dotfiles < Formula
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
     system bin/"dots", "--relink"
-    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep --help'")
+    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -dMLh'")
     assert_match "-m, --dim", help
     assert_match "-A, --no-agent", help
     assert_match "-I, --no-internet", help
+    assert_match "-M, --undim", help
+    assert_match "CHECK SETTINGS", help
     (testpath/".config/nosleep").mkpath
     (testpath/".config/nosleep/config.json").write('{"agent":false,"internet":true}')
     settings = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show'")
     assert_match "Internet checks only", settings
     assert_match "Agents    Off", settings
     assert_match "Internet  On", settings
+    assert_match "\nChecks\n", settings
+    assert_match "\nCheck settings\n", settings
   end
 end
