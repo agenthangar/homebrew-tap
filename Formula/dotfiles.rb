@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/7ddb9815804af1f671bf911b78121bb315a0f70d.tar.gz"
-  version "0.9.3"
-  sha256 "c376c6c153b44cd0fb8011c87f617a440323bcb7d19fee88b0c9691cef050eb3"
+  url "https://github.com/agenthangar/dotfiles/archive/bc071322ca87a0626ef674a52aab971de67e590f.tar.gz"
+  version "0.10.0"
+  sha256 "4285d56ef5c4c01b5c2cdefbb140201529c40789a8d096c3ccbf8837bd49a816"
   license "MIT"
 
   depends_on "fzf"
@@ -67,7 +67,7 @@ class Dotfiles < Formula
     assert_match "-l, --lock MODE", help
     assert_match "-c, --checks MODE", help
     assert_match "all | agent | internet | none", help
-    assert_match "--require N", help
+    assert_match "--require VALUE", help
     assert_match "SHORTCUTS", help
     assert_match "--hotspot MODE", help
     refute_match "--hotspot-after", help
@@ -82,11 +82,14 @@ class Dotfiles < Formula
                            "nosleep --require 2 --checks agent' 2>&1", 2)
     assert_match "--require exceeds the number of enabled checks", invalid
     refute_match "unexpected-power", invalid
-    %w[all one].each do |value|
+    %w[one 0 -1].each do |value|
       invalid_requirement = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
                                          "nosleep --require #{value}' 2>&1", 2)
-      assert_match "--require takes a positive count", invalid_requirement
+      assert_match "--require takes all, none, or a positive count", invalid_requirement
       refute_match "unexpected-power", invalid_requirement
+    end
+    %w[all none 1].each do |value|
+      assert_match "--require VALUE", shell_output("zsh -f -c 'source ~/.zshrc; nosleep --require=#{value} -h'")
     end
     invalid_hotspot = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
                                    "nosleep --hotspot' 2>&1", 2)
@@ -102,5 +105,20 @@ class Dotfiles < Formula
     assert_match "\nCheck settings\n", settings
     assert_match "\nHotspot fallback\n", settings
     assert_match "Hotspot   off", settings
+    config_path = testpath/".config/nosleep/config.json"
+    config_path.unlink
+    config_path.write('{"requirement":"none"}')
+    settings = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show'")
+    assert_match "Require   none", settings
+    assert_match "timing settings inactive", settings
+    assert_match "Inactive (require none; saved on)", settings
+    config_path.unlink
+    config_path.write('{"requirement":1}')
+    values = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --values'")
+    assert_match "requirement=1", values
+    config_path.unlink
+    config_path.write('{"requirement":true}')
+    invalid_config = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show' 2>&1", 1)
+    assert_match "requirement must be all, none, or a positive integer", invalid_config
   end
 end
