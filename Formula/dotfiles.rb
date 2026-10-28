@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/f91c9d87f773aba0f650cd1fa65c0679023c208e.tar.gz"
-  version "0.9.2"
-  sha256 "3e0aadbd44ae5351f5d58673db1564cf372b29ef650c4099e93cf8fb27595494"
+  url "https://github.com/agenthangar/dotfiles/archive/7ddb9815804af1f671bf911b78121bb315a0f70d.tar.gz"
+  version "0.9.3"
+  sha256 "c376c6c153b44cd0fb8011c87f617a440323bcb7d19fee88b0c9691cef050eb3"
   license "MIT"
 
   depends_on "fzf"
@@ -62,13 +62,13 @@ class Dotfiles < Formula
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
     system bin/"dots", "--relink"
-    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c1 -h'")
+    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c agent --require 1 -h'")
     assert_match "-d, --display MODE", help
     assert_match "-l, --lock MODE", help
-    assert_match "-c, --checks VALUE", help
-    assert_match "all | N | none", help
-    refute_match "--require", help
-    refute_match "SHORTCUTS", help
+    assert_match "-c, --checks MODE", help
+    assert_match "all | agent | internet | none", help
+    assert_match "--require N", help
+    assert_match "SHORTCUTS", help
     assert_match "--hotspot MODE", help
     refute_match "--hotspot-after", help
     refute_match "--no-hotspot", help
@@ -79,9 +79,15 @@ class Dotfiles < Formula
     assert_match "CHECK SETTINGS", help
     assert_match "CHECKS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=all -dMLh'")
     invalid = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
-                           "nosleep --checks 2 --no-internet' 2>&1", 2)
-    assert_match "--checks exceeds the number of enabled checks", invalid
+                           "nosleep --require 2 --checks agent' 2>&1", 2)
+    assert_match "--require exceeds the number of enabled checks", invalid
     refute_match "unexpected-power", invalid
+    %w[all one].each do |value|
+      invalid_requirement = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
+                                         "nosleep --require #{value}' 2>&1", 2)
+      assert_match "--require takes a positive count", invalid_requirement
+      refute_match "unexpected-power", invalid_requirement
+    end
     invalid_hotspot = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
                                    "nosleep --hotspot' 2>&1", 2)
     assert_match "--hotspot needs on or off", invalid_hotspot
