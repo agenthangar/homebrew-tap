@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/bc071322ca87a0626ef674a52aab971de67e590f.tar.gz"
-  version "0.10.0"
-  sha256 "4285d56ef5c4c01b5c2cdefbb140201529c40789a8d096c3ccbf8837bd49a816"
+  url "https://github.com/agenthangar/dotfiles/archive/c47713eadffe270f3f19aef15a47006787285048.tar.gz"
+  version "0.10.1"
+  sha256 "fed450b8a00c10bb372af627750512e2d704d59bfafb91a4ba3df6eb999ac181"
   license "MIT"
 
   depends_on "fzf"
@@ -55,13 +55,31 @@ class Dotfiles < Formula
     assert_match "Usage: dots", shell_output("#{bin}/dots --help")
     assert_match "Usage: dots install", shell_output("#{bin}/dotfiles-setup --help")
     (testpath/".zshrc.local").write "# keep local settings\n"
+    (testpath/"bin").mkpath
+    File.symlink((opt_libexec/"bin/csync").to_s, (testpath/"bin/csync").to_s)
+    local_history = testpath/".claude/projects/keep.jsonl"
+    cloud_history = testpath/"Library/Mobile Documents/com~apple~CloudDocs/claude-sessions/keep.jsonl"
+    [local_history, cloud_history].each do |history|
+      history.dirname.mkpath
+      history.write "keep existing history\n"
+    end
     system bin/"dots"
+    refute_path_exists libexec/"bin/csync"
+    refute_predicate testpath/"bin/csync", :symlink?
+    [local_history, cloud_history].each do |history|
+      assert_equal "keep existing history\n", history.read
+    end
     refute_path_exists testpath/"code"
     refute_predicate testpath/".zshrc", :symlink?
     assert_path_exists testpath/".config/dotfiles/installed"
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
     system bin/"dots", "--relink"
+    system "zsh", "-f", "-c",
+           "csync() { return 99; }; _csync_periodic() { return 99; }; " \
+           "precmd_functions=(_csync_periodic); source ~/.zshrc; " \
+           "(( ! ${+functions[csync]} && ! ${+functions[_csync_periodic]} " \
+           "&& ! ${precmd_functions[(Ie)_csync_periodic]} ))"
     help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c agent --require 1 -h'")
     assert_match "-d, --display MODE", help
     assert_match "-l, --lock MODE", help
