@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/d83c53f7b6437206e34847ff9dd4ff71b943d429.tar.gz"
-  version "0.9.1"
-  sha256 "c8eea06f2f9e666158b70ecd638453b2c45f46275591cf3e4727cd1178de1827"
+  url "https://github.com/agenthangar/dotfiles/archive/f91c9d87f773aba0f650cd1fa65c0679023c208e.tar.gz"
+  version "0.9.2"
+  sha256 "3e0aadbd44ae5351f5d58673db1564cf372b29ef650c4099e93cf8fb27595494"
   license "MIT"
 
   depends_on "fzf"
@@ -69,7 +69,9 @@ class Dotfiles < Formula
     assert_match "all | N | none", help
     refute_match "--require", help
     refute_match "SHORTCUTS", help
-    assert_match "--hotspot-after", help
+    assert_match "--hotspot MODE", help
+    refute_match "--hotspot-after", help
+    refute_match "--no-hotspot", help
     assert_path_exists libexec/"lib/nosleep-fallback.zsh"
     assert_path_exists libexec/"lib/nosleep_hotspot.py"
     system Formula["python@3.14"].opt_bin/"python3.14", libexec/"lib/nosleep_hotspot.py",
@@ -80,6 +82,10 @@ class Dotfiles < Formula
                            "nosleep --checks 2 --no-internet' 2>&1", 2)
     assert_match "--checks exceeds the number of enabled checks", invalid
     refute_match "unexpected-power", invalid
+    invalid_hotspot = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
+                                   "nosleep --hotspot' 2>&1", 2)
+    assert_match "--hotspot needs on or off", invalid_hotspot
+    refute_match "unexpected-power", invalid_hotspot
     (testpath/".config/nosleep").mkpath
     (testpath/".config/nosleep/config.json").write('{"agent":false,"internet":true}')
     settings = shell_output("zsh -f -c 'source ~/.zshrc; nosleep config --show'")
