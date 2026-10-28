@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/59af08b997491557358038a497c72ebffd8b0089.tar.gz"
-  version "0.9.0"
-  sha256 "4ca6b307ed7cf21537654a4b5b2699c9dd62cd24486c014e38055902abcc6b2c"
+  url "https://github.com/agenthangar/dotfiles/archive/d83c53f7b6437206e34847ff9dd4ff71b943d429.tar.gz"
+  version "0.9.1"
+  sha256 "c8eea06f2f9e666158b70ecd638453b2c45f46275591cf3e4727cd1178de1827"
   license "MIT"
 
   depends_on "fzf"
@@ -62,21 +62,23 @@ class Dotfiles < Formula
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
     system bin/"dots", "--relink"
-    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c agent -h'")
+    help = shell_output("zsh -f -c 'source ~/.zshrc; nosleep -d dim -l off -c1 -h'")
     assert_match "-d, --display MODE", help
     assert_match "-l, --lock MODE", help
-    assert_match "-c, --checks MODE", help
-    assert_match "--require VALUE", help
+    assert_match "-c, --checks VALUE", help
+    assert_match "all | N | none", help
+    refute_match "--require", help
+    refute_match "SHORTCUTS", help
     assert_match "--hotspot-after", help
     assert_path_exists libexec/"lib/nosleep-fallback.zsh"
     assert_path_exists libexec/"lib/nosleep_hotspot.py"
     system Formula["python@3.14"].opt_bin/"python3.14", libexec/"lib/nosleep_hotspot.py",
            "validate", "--ssid=Example Hotspot"
     assert_match "CHECK SETTINGS", help
-    assert_match "SHORTCUTS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=agent -dMLh'")
+    assert_match "CHECKS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=all -dMLh'")
     invalid = shell_output("zsh -f -c 'source ~/.zshrc; sudo() { echo unexpected-power; }; " \
-                           "nosleep --checks agent --require=2' 2>&1", 2)
-    assert_match "--require exceeds the number of enabled checks", invalid
+                           "nosleep --checks 2 --no-internet' 2>&1", 2)
+    assert_match "--checks exceeds the number of enabled checks", invalid
     refute_match "unexpected-power", invalid
     (testpath/".config/nosleep").mkpath
     (testpath/".config/nosleep/config.json").write('{"agent":false,"internet":true}')
