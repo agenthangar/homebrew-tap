@@ -18,14 +18,14 @@ class T < Formula
 
   def install
     libexec.install Dir["*"], ".t-install-version", ".t-release-version"
-    rewrite_shebang detected_python_shebang, libexec/"bin/t"
+    rewrite_shebang detected_python_shebang, libexec/"bin/t", libexec/"bin/nosleep"
     marker = {
       formula:     "agenthangar/tap/t",
       opt_libexec: opt_libexec.to_s,
       brew:        (HOMEBREW_PREFIX/"bin/brew").to_s,
     }
     (libexec/".t-homebrew").write("#{JSON.generate(marker)}\n")
-    bin.install_symlink libexec/"bin/t"
+    bin.install_symlink libexec/"bin/t", libexec/"bin/nosleep"
   end
 
   def caveats
@@ -50,9 +50,13 @@ class T < Formula
     assert_match "USAGE", shell_output("#{bin}/t")
     assert_equal before, Dir.glob("#{testpath}/**/*", File::FNM_DOTMATCH).sort
     assert_match "t v#{version}", shell_output("#{bin}/t --version")
+    assert_match "nosleep —", shell_output("#{bin}/nosleep --help")
+    assert_match "nosleep defaults", shell_output("#{bin}/nosleep config --show")
+    refute_path_exists testpath/".config/nosleep/config.json"
     system bin/"t", "ls"
     system bin/"t", "integrate"
     assert_equal (opt_libexec/"bin/t").to_s, (testpath/"bin/t").readlink.to_s
+    assert_equal (opt_libexec/"bin/nosleep").to_s, (testpath/"bin/nosleep").readlink.to_s
     assert_equal (opt_libexec/"claude/commands/tpush.md").to_s,
                  (testpath/".claude/commands/tpush.md").readlink.to_s
   end
