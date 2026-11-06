@@ -9,6 +9,9 @@ brew install agenthangar/tap/t
 t
 ```
 
+The package also provides the standalone macOS `nosleep` command. Run
+`nosleep --help` or `nosleep config --show`; installation never starts monitoring.
+
 The formula installs t's files under Homebrew without changing your shell or agent settings. Run `t` in a terminal for guided first-run setup: choose agents, review shell and agent integrations, discover existing repositories, and optionally clone selected GitHub organization repositories or add Tailscale hosts. Setup reviews changes before applying them. Open a new terminal afterward to load the shell integration.
 
 You can also add this tap once with `brew tap agenthangar/tap`, then use `brew install t`. Rerun discovery with `t config onboard` when you add repositories or hosts. Noninteractive `t` prints help without changing settings.

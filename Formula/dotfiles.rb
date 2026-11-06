@@ -4,11 +4,13 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/c47713eadffe270f3f19aef15a47006787285048.tar.gz"
-  version "0.10.1"
-  sha256 "fed450b8a00c10bb372af627750512e2d704d59bfafb91a4ba3df6eb999ac181"
+  url "https://github.com/agenthangar/dotfiles/archive/5eb733cf96e5c4345825693c0776e5c335079bdf.tar.gz"
+  version "0.10.2"
+  sha256 "fee7092ddf33f4620c44bfae1658350b0f33ad8ae087d7699c0cbad3c6c931c1"
   license "MIT"
 
+  # The t formula must ship nosleep before this cutover is released.
+  depends_on "agenthangar/tap/t"
   depends_on "fzf"
   depends_on "gh"
   depends_on "git"
@@ -90,9 +92,11 @@ class Dotfiles < Formula
     assert_match "--hotspot MODE", help
     refute_match "--hotspot-after", help
     refute_match "--no-hotspot", help
-    assert_path_exists libexec/"lib/nosleep-fallback.zsh"
-    assert_path_exists libexec/"lib/nosleep_hotspot.py"
-    system Formula["python@3.14"].opt_bin/"python3.14", libexec/"lib/nosleep_hotspot.py",
+    refute_path_exists libexec/"lib/nosleep-fallback.zsh"
+    refute_path_exists libexec/"lib/nosleep_hotspot.py"
+    nosleep_root = Formula["agenthangar/tap/t"].opt_libexec
+    assert_path_exists nosleep_root/"bin/nosleep"
+    system Formula["python@3.14"].opt_bin/"python3.14", nosleep_root/"libexec/nosleep_hotspot.py",
            "validate", "--ssid=Example Hotspot"
     assert_match "CHECK SETTINGS", help
     assert_match "CHECKS", shell_output("zsh -f -c 'source ~/.zshrc; nosleep -Lc=all -dMLh'")
