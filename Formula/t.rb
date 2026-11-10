@@ -7,8 +7,8 @@ class T < Formula
 
   desc "Coding-agent sessions in isolated Git worktrees and tmux"
   homepage "https://github.com/agenthangar/t"
-  url "https://github.com/agenthangar/t/releases/download/v0.6.11/t.tar.gz"
-  sha256 "66e7b602b922b2af698cdc5f8483103937b9094f308c91a4201e03e27b0a3b5a"
+  url "https://github.com/agenthangar/t/releases/download/v0.6.12/t.tar.gz"
+  sha256 "330154efba2c4c549a5b8b2a5363a0392ef5cc73129298f28d8e5590724d724a"
   license "MIT"
 
   depends_on "git"
