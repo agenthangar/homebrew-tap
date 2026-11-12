@@ -23,14 +23,23 @@ To update, run `t system update` or `brew upgrade agenthangar/tap/t`. The formul
 ```sh
 brew tap agenthangar/tap
 brew install dots
-dots
+dots system integrate
 ```
 
 `dots` is an alias for the `dotfiles` formula. The package contains the complete
 configuration, utilities, and templates; no Git checkout is required. The first
-`dots` applies that package to your account. Later runs upgrade through Homebrew
-and reapply the installed configuration. `dots --relink` reconciles it offline.
-`dots install` reruns full account setup, including optional sudo trust.
+`dots system integrate` applies that package to your account. Later
+`dots system update` runs upgrade through Homebrew and reapply the installed
+configuration. `dots system integrate --relink` reconciles it offline.
+The original `dots`, `dots update`, and `dots install` commands remain supported.
+
+Integration and updates also apply the packaged Rectangle shortcuts and selected
+Dock, Finder, scrolling, and window-tiling preferences on macOS. Unrelated
+preferences are preserved; managed keys are reapplied on each update. Install
+Rectangle separately with `brew install --cask rectangle`, then open it and grant
+Accessibility access. `DOTFILES_NO_MACOS=1` skips preferences. Homebrew itself
+uses an isolated home for installation hooks, so account preferences are applied
+by integration/update rather than by a formula post-install hook.
 
 Existing checkout users should run the Homebrew command explicitly once:
 
