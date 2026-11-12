@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/5eb733cf96e5c4345825693c0776e5c335079bdf.tar.gz"
-  version "0.10.2"
-  sha256 "fee7092ddf33f4620c44bfae1658350b0f33ad8ae087d7699c0cbad3c6c931c1"
+  url "https://github.com/agenthangar/dotfiles/archive/dcb8a8561ae9a805cf7ce6fd404e7fcd16a36c99.tar.gz"
+  version "0.11.0"
+  sha256 "4c8429698d4bcd4e98bd4b2b367ae94679b18d39eb4736c085c258c8a2da03f6"
   license "MIT"
 
   # The t formula must ship nosleep before this cutover is released.
@@ -32,15 +32,19 @@ class Dotfiles < Formula
   def caveats
     <<~EOS
       Apply the installed package to this account:
-        #{opt_bin}/dots
+        #{opt_bin}/dots system integrate
 
       No Git checkout is required. Configuration and utilities come from
       Homebrew; your settings remain in ~/.zshrc.local.
       Existing checkout-based installs are migrated without deleting the checkout.
 
       Open a new shell or run: source ~/.zshrc
-      Run dots to upgrade through Homebrew and apply the installed configuration.
-      dots --relink reapplies it offline. dots install reruns full account setup.
+      Run dots system update to upgrade and apply the installed configuration.
+      dots system integrate --relink reapplies it offline.
+      Rectangle shortcuts and selected macOS preferences apply during integration
+      and updates. Install Rectangle separately: brew install --cask rectangle
+      Open Rectangle and grant Accessibility access on a new Mac.
+      Homebrew installation alone does not change account preferences.
       Uninstalling the package leaves your settings but removes its runtime.
     EOS
   end
@@ -52,8 +56,12 @@ class Dotfiles < Formula
     ENV["DOTFILES_NO_TMUX"] = "1"
     ENV["DOTFILES_NO_CLIP_BRIDGE"] = "1"
     ENV["DOTFILES_NO_SUDO"] = "1"
+    ENV["DOTFILES_NO_MACOS"] = "1"
     ENV["GIT_CONFIG_GLOBAL"] = File::NULL
     ENV["GIT_CONFIG_NOSYSTEM"] = "1"
+    assert_path_exists libexec/"lib/macos/apply.py"
+    assert_path_exists libexec/"lib/macos/preferences.json"
+    assert_match "system update", shell_output("#{bin}/dots --help")
     assert_match "Usage: dots", shell_output("#{bin}/dots --help")
     assert_match "Usage: dots install", shell_output("#{bin}/dotfiles-setup --help")
     (testpath/".zshrc.local").write "# keep local settings\n"
@@ -65,7 +73,7 @@ class Dotfiles < Formula
       history.dirname.mkpath
       history.write "keep existing history\n"
     end
-    system bin/"dots"
+    system bin/"dots", "system", "integrate"
     refute_path_exists libexec/"bin/csync"
     refute_predicate testpath/"bin/csync", :symlink?
     [local_history, cloud_history].each do |history|
@@ -76,7 +84,7 @@ class Dotfiles < Formula
     assert_path_exists testpath/".config/dotfiles/installed"
     assert_equal "# keep local settings\n", (testpath/".zshrc.local").read
     assert_equal (opt_libexec/"bin/sleep-manager").to_s, (testpath/"bin/sleep-manager").readlink.to_s
-    system bin/"dots", "--relink"
+    system bin/"dots", "system", "integrate", "--relink"
     system "zsh", "-f", "-c",
            "csync() { return 99; }; _csync_periodic() { return 99; }; " \
            "precmd_functions=(_csync_periodic); source ~/.zshrc; " \
