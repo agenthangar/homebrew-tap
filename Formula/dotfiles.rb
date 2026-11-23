@@ -4,9 +4,9 @@
 class Dotfiles < Formula
   desc "Set up AgentHangar shell configuration and utilities"
   homepage "https://github.com/agenthangar/dotfiles"
-  url "https://github.com/agenthangar/dotfiles/archive/6a30878d6ac087ed29d4e8e9bd67488d58bfacae.tar.gz"
-  version "0.12.0"
-  sha256 "064fabb321fe5431d2e6b6c8fd17d11f7ebb843498e6ebdda878a532783c8ce0"
+  url "https://github.com/agenthangar/dotfiles/archive/b682ea093c7544653f16a0a48708f61fb7184ae0.tar.gz"
+  version "0.12.1"
+  sha256 "85432605db3294365bf6822340bca2c7b133b543032f06691bafbb63e460248c"
   license "MIT"
 
   # The t formula must ship nosleep before this cutover is released.
